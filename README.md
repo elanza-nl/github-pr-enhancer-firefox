@@ -2,7 +2,7 @@
 
 A Chrome extension that displays reviewers directly in the GitHub Pull Request list view.
 
-<pre class="vditor-reset" placeholder="" contenteditable="true" spellcheck="false"><p data-block="0"><img src="https://file+.vscode-resource.vscode-cdn.net/home/taiga/develop/workspace/chrome_ext_ws/github_show_reviewer/docs/show_reviwer_list.png" alt="Reviewer List Display"/></p></pre>
+![Reviwer List](docs/show_reviwer_list.png)
 
 ## Features
 
