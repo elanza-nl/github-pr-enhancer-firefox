@@ -27,7 +27,7 @@ document.getElementById('save').addEventListener('click', async () => {
   try {
     // Chrome storageに保存
     await chrome.storage.sync.set({ githubToken: token });
-    showStatus('success', 'Token saved! Reload the page for changes to take effect.');
+    showStatus('success', 'Token saved! Visit any GitHub Pull Request page to see reviewers.');
   } catch (error) {
     console.error('Failed to save token:', error);
     showStatus('error', 'Failed to save token: ' + error.message);

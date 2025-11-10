@@ -40,24 +40,28 @@
 
     label {
       display: block;
-      font-weight: 600;
-      margin-bottom: 8px;
+      font-weight: 700;
+      margin-bottom: 10px;
       color: #24292f;
+      font-size: 15px;
     }
 
     input[type="password"] {
       width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #d0d7de;
+      padding: 12px 16px;
+      border: 2px solid #0969da;
       border-radius: 6px;
-      font-size: 14px;
+      font-size: 15px;
       box-sizing: border-box;
+      background: #f6f8fa;
+      transition: all 0.2s;
     }
 
     input[type="password"]:focus {
       outline: none;
       border-color: #0969da;
-      box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+      box-shadow: 0 0 0 4px rgba(9, 105, 218, 0.15);
+      background: white;
     }
 
     .hint {
@@ -68,10 +72,22 @@
 
     .hint a {
       color: #0969da;
-      text-decoration: none;
+      text-decoration: underline;
     }
 
     .hint a:hover {
+      text-decoration: underline;
+    }
+
+    .token-link {
+      color: #0969da;
+      text-decoration: underline;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .token-link:hover {
+      color: #0550ae;
       text-decoration: underline;
     }
 
@@ -116,10 +132,8 @@
     }
 
     .instructions {
-      background: #fff8c5;
-      border: 1px solid #d4a72c;
-      border-radius: 6px;
-      padding: 16px;
+      border-top: 1px solid #d0d7de;
+      padding-top: 24px;
       margin-top: 24px;
     }
 
@@ -141,7 +155,7 @@
     }
 
     .instructions code {
-      background: #fff;
+      background: #f6f8fa;
       padding: 2px 6px;
       border-radius: 3px;
       font-family: monospace;
@@ -154,8 +168,11 @@
   <div class="container">
     <h1>GitHub Show Reviewer Settings</h1>
     <p class="description">
-      Configure your GitHub Personal Access Token to access the GitHub API.
-      Without a token, you may encounter 403 errors due to rate limiting.
+      Configure your GitHub Personal Access Token to access the GitHub API. <br>
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=GitHub%20Show%20Reviewer&default_expires_at=none"
+        target="_blank" class="token-link">
+        Create a token here
+      </a>
     </p>
 
     <div class="form-group">
@@ -163,10 +180,6 @@
       <input type="password" id="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
       <div class="hint">
         Your token will be securely stored.
-        <a href="https://github.com/settings/tokens/new?scopes=repo&description=GitHub%20Show%20Reviewer&default_expires_at=none"
-          target="_blank">
-          Create a token here
-        </a>
       </div>
     </div>
 
@@ -177,21 +190,10 @@
     <div class="instructions">
       <h2>📝 How to Create a Token</h2>
       <ol>
-        <li>
-          Click the "Create a token here" link above
-        </li>
-        <li>
-          Check the <code>repo</code> scope
-        </li>
-        <li>
-          Click "Generate token"
-        </li>
-        <li>
-          Copy the generated token (starts with <code>ghp_</code>)
-        </li>
-        <li>
-          Paste it in the input field above and click "Save"
-        </li>
+        <li>Click "Create a token here" link above</li>
+        <li>Click "Generate token" (the <code>repo</code> scope is already selected)</li>
+        <li>Copy the token (starts with <code>ghp_</code>)</li>
+        <li>Paste it above and click "Save"</li>
       </ol>
     </div>
   </div>
