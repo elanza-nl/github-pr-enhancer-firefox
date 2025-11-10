@@ -33,5 +33,4 @@ For private repositories or to increase API rate limits, you need to configure y
 6. GitHub's "New personal access token (classic)" page will open
 7. Check the `repo` scope (required for private repositories)
 8. Generate the token and copy it
-9. Return to the GitHub Show Reviewer Settings page
-10. Paste the token in the input field and click "Save"
+9. Paste the token in the input field and click "Save"
