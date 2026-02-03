@@ -487,6 +487,18 @@
     span.classList.toggle(`${SPAN_CLASS}--error`, isError);
   }
 
+  // Check if a user is a bot
+  function isBot(login) {
+    if (!login) return false;
+    const lowerLogin = login.toLowerCase();
+    return lowerLogin.endsWith('[bot]') ||
+           lowerLogin.endsWith('-bot') ||
+           lowerLogin.includes('bot-') ||
+           lowerLogin === 'dependabot' ||
+           lowerLogin === 'renovate' ||
+           lowerLogin === 'github-actions';
+  }
+
   // 以下のメソッドで使用されているAPIは以下
   // # 環境変数にトークンを設定
   // export GITHUB_TOKEN="your_github_token_here"
@@ -529,12 +541,14 @@
       // レビュー中のユーザーを抽出（requested_reviewers: リクエストされたレビュワーの一覧）
       // レビューを完了するとrequested_reviewersは空になるので、後段でreviewsから抽出する
       const requestedUsers = Array.isArray(pullData.requested_reviewers)
-        ? pullData.requested_reviewers.map((user) => ({
-            login: user.login,
-            avatarUrl: user.avatar_url,
-            type: 'requested',
-            isTeam: false
-          }))
+        ? pullData.requested_reviewers
+            .filter((user) => !isBot(user.login))
+            .map((user) => ({
+              login: user.login,
+              avatarUrl: user.avatar_url,
+              type: 'requested',
+              isTeam: false
+            }))
         : [];
 
       // requested_teams: リクエストされたチームの一覧
@@ -563,7 +577,8 @@
               review.user.login &&
               review.state &&
               review.state.toUpperCase() !== 'PENDING' &&
-              review.user.login !== pullData.user.login  // PR作成者を除外
+              review.user.login !== pullData.user.login &&  // PR作成者を除外
+              !isBot(review.user.login)  // ボットを除外
           )
           .map((review) => ({
             login: review.user.login,
