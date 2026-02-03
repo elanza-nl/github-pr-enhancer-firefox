@@ -138,7 +138,7 @@
       if (reviewer.isTeam) {
         // Team icon with search URL
         const queryOperator = `team-review-requested:${repoInfo.owner}/${reviewer.login}`;
-        const searchUrl = `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pulls?q=sort%3Aupdated-desc+is%3Apr+${encodeURIComponent(queryOperator)}`;
+        const searchUrl = `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen+${encodeURIComponent(queryOperator)}`;
         const teamIcon = `<svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16" class="octicon octicon-people">
           <path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"></path>
         </svg>`;
@@ -148,7 +148,7 @@
       } else {
         // User avatar with search URL
         const queryOperator = `review-requested:${reviewer.login}`;
-        const searchUrl = `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pulls?q=sort%3Aupdated-desc+is%3Apr+${encodeURIComponent(queryOperator)}`;
+        const searchUrl = `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen+${encodeURIComponent(queryOperator)}`;
         const avatarUrl = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
         return `<a href="${searchUrl}" class="reviewer-avatar-link" data-login="${reviewer.login}" data-type="${reviewer.type}" title="${reviewer.login}">
           <img src="${avatarUrl}" alt="${reviewer.login}" class="reviewer-avatar" loading="lazy" />
