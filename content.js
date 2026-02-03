@@ -77,7 +77,7 @@
     // 以前の処理で挿入済みの場合はそのまま返す
     if (!reviewerSpan) {
       reviewerSpan = document.createElement('span');
-      reviewerSpan.className = `${SPAN_CLASS} issue-meta-section ml-2`;
+      reviewerSpan.className = `${SPAN_CLASS} issue-meta-section ml-1`;
     }
     inlineFlexContainer.appendChild(reviewerSpan);
 
@@ -127,7 +127,7 @@
 
   function formatReviewerAvatars(reviewers) {
     if (!reviewers || reviewers.length === 0) {
-      return '<span>Reviewer: </span> <span class="reviewer-none">None</span>';
+      return '<span class="reviewer-separator">•</span><span>Reviewer: </span> <span class="reviewer-none">None</span>';
     }
 
     const MAX_VISIBLE = 5;
@@ -161,7 +161,7 @@
       overflowBadge = `<span class="reviewer-overflow-badge" title="${reviewers.slice(MAX_VISIBLE).map(r => r.isTeam ? '@' + r.login : r.login).join(', ')}">+${overflowCount}</span>`;
     }
 
-    return `<span class="reviewer-label">Reviewer: </span><span class="reviewer-avatars-container">${avatarElements.join('')}${overflowBadge}</span>`;
+    return `<span class="reviewer-separator">•</span><span class="reviewer-avatars-container">${avatarElements.join('')}${overflowBadge}</span>`;
   }
 
   // Fetch user profile data from GitHub API with caching
@@ -469,14 +469,14 @@
   // span: 基本的なグループ化タグ. 以下のようにインラインで部分的な装飾が可能
   // <p id="msg">Hello, <span id="name">World</span>!</p>
   // text: 表示したい文字列
-  function setSpanText(span, text, isError = false) {
+  function setSpanText(span, text, isError = false, skipIcon = false) {
     // 目のアイコンを追加
     const iconSvg = `<svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-eye">
            <path d="M8 2c1.981 0 3.671.992 4.933 2.078 1.27 1.091 2.187 2.345 2.637 3.023a1.62 1.62 0 0 1 0 1.798c-.45.678-1.367 1.932-2.637 3.023C11.67 13.008 9.981 14 8 14c-1.981 0-3.671-.992-4.933-2.078C1.797 10.83.88 9.576.43 8.898a1.62 1.62 0 0 1 0-1.798c.45-.677 1.367-1.931 2.637-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.12.12 0 0 0 0 .136c.411.622 1.241 1.75 2.366 2.717C5.176 11.758 6.527 12.5 8 12.5c1.473 0 2.825-.742 3.955-1.715 1.124-.967 1.954-2.096 2.366-2.717a.12.12 0 0 0 0-.136c-.412-.621-1.242-1.75-2.366-2.717C10.824 4.242 9.473 3.5 8 3.5c-1.473 0-2.825.742-3.955 1.715-1.124.967-1.954 2.096-2.366 2.717ZM8 10a2 2 0 1 1-.001-3.999A2 2 0 0 1 8 10Z"></path>
          </svg>`;
 
     // span.innerHTML = `• ${text}`;
-    span.innerHTML = `${iconSvg}${text}`;
+    span.innerHTML = skipIcon ? text : `${iconSvg}${text}`;
 
     // 成功状態
     // .github-show-reviewer--success(color: var(--fgColor-success, #1a7f37))
@@ -611,7 +611,7 @@
     }
 
     // レビュワー情報取得中の表示をセット
-    setSpanText(infoSpan, '<span>Reviewer: </span> Loading...');
+    setSpanText(infoSpan, '<span class="reviewer-separator">•</span><span>Reviewer: </span> Loading...', false, true);
     // title属性をクリア（エラー発生時のみ設定）
     infoSpan.removeAttribute('title');
 
@@ -624,12 +624,12 @@
       }
 
       if (error) {
-        setSpanText(infoSpan, '<span>Reviewer: </span> <span class="reviewer-na">N/A</span>', true);
+        setSpanText(infoSpan, '<span class="reviewer-separator">•</span><span>Reviewer: </span> <span class="reviewer-na">N/A</span>', true, true);
         infoSpan.title = error;
         return;
       }
 
-      setSpanText(infoSpan, formatReviewerAvatars(reviewers));
+      setSpanText(infoSpan, formatReviewerAvatars(reviewers), false, true);
       infoSpan.removeAttribute('title');
 
       // Attach hover card event listeners to avatars
