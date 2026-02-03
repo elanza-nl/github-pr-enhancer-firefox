@@ -13,7 +13,6 @@
     return { owner: match[1], repo: match[2] };
   }
 
-  // TODO: Avoid using repoInfo as global variable
   let repoInfo = checkAndGetRepoInfo();
   let rowPromises = new WeakMap();
   const ROW_SELECTOR = '.js-issue-row';
