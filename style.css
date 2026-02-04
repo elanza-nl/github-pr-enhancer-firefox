@@ -68,6 +68,15 @@
   border-color: var(--bgColor-accent-emphasis, #0969da);
 }
 
+/* Review state rings */
+.reviewer-state-approved .reviewer-avatar {
+  box-shadow: 0 0 0 2px #2ea043;
+}
+
+.reviewer-state-changes-requested .reviewer-avatar {
+  box-shadow: 0 0 0 2px #d29922;
+}
+
 /* Team badge styles */
 .reviewer-team-badge {
   display: inline-flex;
@@ -97,6 +106,88 @@
 
 .reviewer-team-badge .team-name {
   font-size: 11px;
+}
+
+/* Filter bar */
+.github-show-reviewer-filter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--borderColor-default, #d0d7de);
+}
+
+.reviewer-filter-label {
+  font-size: 14px;
+  color: var(--fgColor-muted, #656d76);
+  white-space: nowrap;
+  margin-right: 4px;
+}
+
+.reviewer-filter-loading {
+  font-size: 14px;
+  color: var(--fgColor-muted, #656d76);
+}
+
+.reviewer-filter-avatar {
+  background: none;
+  border: 2px solid var(--borderColor-default, #d0d7de);
+  border-radius: 50%;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+}
+
+.reviewer-filter-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.reviewer-filter-avatar:hover {
+  transform: scale(1.1);
+  border-color: var(--borderColor-emphasis, #858d96);
+}
+
+.reviewer-filter-avatar--active {
+  border-color: var(--bgColor-accent-emphasis, #0969da);
+  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
+}
+
+.reviewer-filter-avatar--active:hover {
+  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
+}
+
+.reviewer-filter-team {
+  background: var(--bgColor-muted, #f6f8fa);
+  border: 2px solid var(--borderColor-default, #d0d7de);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--fgColor-muted, #656d76);
+  transition: box-shadow 0.15s, transform 0.15s, border-color 0.15s;
+}
+
+.reviewer-filter-team:hover {
+  transform: scale(1.1);
+  border-color: var(--borderColor-emphasis, #858d96);
+}
+
+.reviewer-filter-team--active {
+  border-color: var(--bgColor-accent-emphasis, #0969da);
+  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
+}
+
+.reviewer-filter-team--active:hover {
+  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
 }
 
 /* Overflow badge */

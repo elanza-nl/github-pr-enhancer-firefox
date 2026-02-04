@@ -19,6 +19,10 @@
   const SPAN_CLASS = 'github-show-reviewer';
   let currentUrl = window.location.href;
   let observer = null;
+  let rowReviewerData = new WeakMap();
+  let allReviewers = new Map();
+  let activeFilter = null;
+  let filterBar = null;
 
   // Get GitHub API headers (includes token if available)
   async function getApiHeaders() {
@@ -122,7 +126,13 @@
         const queryOperator = `review-requested:${reviewer.login}`;
         const searchUrl = `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pulls?q=sort%3Aupdated-desc+is%3Apr+is%3Aopen+${encodeURIComponent(queryOperator)}`;
         const avatarUrl = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
-        return `<a href="${searchUrl}" class="reviewer-avatar-link" data-login="${reviewer.login}" data-type="${reviewer.type}" title="${reviewer.login}">
+        const stateClass = reviewer.state === 'APPROVED' ? ' reviewer-state-approved'
+          : reviewer.state === 'CHANGES_REQUESTED' ? ' reviewer-state-changes-requested'
+          : '';
+        const stateLabel = reviewer.state === 'APPROVED' ? ' (approved)'
+          : reviewer.state === 'CHANGES_REQUESTED' ? ' (changes requested)'
+          : '';
+        return `<a href="${searchUrl}" class="reviewer-avatar-link${stateClass}" data-login="${reviewer.login}" data-type="${reviewer.type}" title="${reviewer.login}${stateLabel}">
           <img src="${avatarUrl}" alt="${reviewer.login}" class="reviewer-avatar" loading="lazy" />
         </a>`;
       }
@@ -201,33 +211,39 @@
         reviews = await reviewsResponse.json();
       }
 
-      // Extract users who have reviewed (exclude PR author and bots)
-      const reviewedUsers = Array.isArray(reviews)
-        ? reviews
-          .filter(
-            (review) =>
-              review &&
-              review.user &&
-              review.user.login &&
-              review.state &&
-              review.state.toUpperCase() !== 'PENDING' &&
-              review.user.login !== pullData.user.login &&
-              !isBot(review.user.login)
-          )
-          .map((review) => ({
-            login: review.user.login,
-            avatarUrl: review.user.avatar_url,
-            type: 'reviewed',
-            isTeam: false
-          }))
-        : [];
+      // Extract users who have reviewed (exclude PR author and bots).
+      // Use a Map keyed by login so that iterating forward naturally keeps
+      // the last (most recent) review per user.
+      const reviewMap = new Map();
+      if (Array.isArray(reviews)) {
+        for (const review of reviews) {
+          if (
+            review &&
+            review.user &&
+            review.user.login &&
+            review.state &&
+            review.state.toUpperCase() !== 'PENDING' &&
+            review.user.login !== pullData.user.login &&
+            !isBot(review.user.login)
+          ) {
+            reviewMap.set(review.user.login, review);
+          }
+        }
+      }
+      const reviewedUsers = Array.from(reviewMap.values()).map((review) => ({
+        login: review.user.login,
+        avatarUrl: review.user.avatar_url,
+        type: 'reviewed',
+        state: review.state.toUpperCase(),
+        isTeam: false
+      }));
       console.log('reviewedUsers', reviewedUsers);
 
       // Deduplicate by login
-      const allReviewers = [...requestedUsers, ...requestedTeams, ...reviewedUsers];
+      const combined = [...requestedUsers, ...requestedTeams, ...reviewedUsers];
       const seenLogins = new Set();
       const reviewers = [];
-      for (const reviewer of allReviewers) {
+      for (const reviewer of combined) {
         const key = reviewer.isTeam ? `@${reviewer.login}` : reviewer.login;
         if (!seenLogins.has(key)) {
           seenLogins.add(key);
@@ -276,6 +292,17 @@
 
       setSpanText(infoSpan, formatReviewerAvatars(reviewers), false);
       infoSpan.removeAttribute('title');
+      rowReviewerData.set(row, reviewers);
+      let barChanged = false;
+      for (const r of reviewers) {
+        const key = r.isTeam ? `@${r.login}` : r.login;
+        if (!allReviewers.has(key)) {
+          allReviewers.set(key, r);
+          barChanged = true;
+        }
+      }
+      if (barChanged) renderFilterBar();
+      if (activeFilter) filterRow(row);
     });
     promise.finally(() => {
       if (rowPromises.get(row) === promise) {
@@ -291,6 +318,93 @@
     });
   }
 
+  function filterRow(row) {
+    if (!activeFilter) {
+      row.style.display = '';
+      return;
+    }
+    const reviewers = rowReviewerData.get(row);
+    if (!reviewers) {
+      row.style.display = 'none';
+      return;
+    }
+    const match = reviewers.find(r => r.login === activeFilter.login && r.isTeam === activeFilter.isTeam);
+    if (!match || match.state === 'APPROVED' || match.state === 'CHANGES_REQUESTED') {
+      row.style.display = 'none';
+    } else {
+      row.style.display = '';
+    }
+  }
+
+  function applyFilter() {
+    document.querySelectorAll(ROW_SELECTOR).forEach(filterRow);
+  }
+
+  function ensureFilterBar() {
+    if (filterBar && document.contains(filterBar)) return filterBar;
+    document.querySelectorAll('.github-show-reviewer-filter').forEach(el => el.remove());
+    filterBar = null;
+    const firstRow = document.querySelector(ROW_SELECTOR);
+    if (!firstRow) return null;
+    filterBar = document.createElement('div');
+    filterBar.className = 'github-show-reviewer-filter pl-3';
+    filterBar.style.display = 'none';
+    firstRow.parentNode.insertBefore(filterBar, firstRow);
+    return filterBar;
+  }
+
+  function renderFilterBar() {
+    const bar = ensureFilterBar();
+    if (!bar) return;
+
+    const sorted = Array.from(allReviewers.values()).sort((a, b) =>
+      a.login.localeCompare(b.login, undefined, { sensitivity: 'base' })
+    );
+
+    bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews for:</span>';
+
+    for (const reviewer of sorted) {
+      const isActive = activeFilter && activeFilter.login === reviewer.login && activeFilter.isTeam === reviewer.isTeam;
+      if (reviewer.isTeam) {
+        const btn = document.createElement('button');
+        btn.className = 'reviewer-filter-team' + (isActive ? ' reviewer-filter-team--active' : '');
+        btn.title = `@${reviewer.login}`;
+        btn.innerHTML = '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16" class="octicon octicon-people"><path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"></path></svg>';
+        btn.addEventListener('click', () => toggleFilter(reviewer.login, true));
+        bar.appendChild(btn);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'reviewer-filter-avatar' + (isActive ? ' reviewer-filter-avatar--active' : '');
+        btn.title = reviewer.login;
+        const img = document.createElement('img');
+        img.src = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
+        img.alt = reviewer.login;
+        img.loading = 'lazy';
+        btn.appendChild(img);
+        btn.addEventListener('click', () => toggleFilter(reviewer.login, false));
+        bar.appendChild(btn);
+      }
+    }
+
+    bar.style.display = allReviewers.size > 0 ? 'flex' : 'none';
+  }
+
+  function toggleFilter(login, isTeam) {
+    if (activeFilter && activeFilter.login === login && activeFilter.isTeam === isTeam) {
+      clearFilter();
+    } else {
+      activeFilter = { login, isTeam };
+      renderFilterBar();
+      applyFilter();
+    }
+  }
+
+  function clearFilter() {
+    activeFilter = null;
+    renderFilterBar();
+    applyFilter();
+  }
+
   // Initialize extension (re-run when URL changes)
   function initializeExtension() {
     repoInfo = checkAndGetRepoInfo();
@@ -300,10 +414,22 @@
         observer.disconnect();
         observer = null;
       }
+      allReviewers.clear();
+      activeFilter = null;
+      if (filterBar) { filterBar.remove(); filterBar = null; }
       return;
     }
 
     rowPromises = new WeakMap();
+    allReviewers.clear();
+    activeFilter = null;
+    applyFilter();
+
+    const bar = ensureFilterBar();
+    if (bar) {
+      bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews for:</span><span class="reviewer-filter-loading">Loading...</span>';
+      bar.style.display = 'flex';
+    }
 
     if (!observer) {
       observer = new MutationObserver((mutations) => {
