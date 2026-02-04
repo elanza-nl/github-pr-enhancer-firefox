@@ -23,6 +23,7 @@
   let allReviewers = new Map();
   let activeFilter = null;
   let filterBar = null;
+  let initializationTimeout = null;
 
   // Get GitHub API headers (includes token if available)
   async function getApiHeaders() {
@@ -361,7 +362,7 @@
       a.login.localeCompare(b.login, undefined, { sensitivity: 'base' })
     );
 
-    bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews for:</span>';
+    bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews by:</span>';
 
     for (const reviewer of sorted) {
       const isActive = activeFilter && activeFilter.login === reviewer.login && activeFilter.isTeam === reviewer.isTeam;
@@ -407,9 +408,9 @@
 
   // Initialize extension (re-run when URL changes)
   function initializeExtension() {
-    repoInfo = checkAndGetRepoInfo();
+    const newRepoInfo = checkAndGetRepoInfo();
 
-    if (!repoInfo) {
+    if (!newRepoInfo) {
       if (observer) {
         observer.disconnect();
         observer = null;
@@ -417,18 +418,28 @@
       allReviewers.clear();
       activeFilter = null;
       if (filterBar) { filterBar.remove(); filterBar = null; }
+      repoInfo = null;
       return;
     }
 
-    rowPromises = new WeakMap();
-    allReviewers.clear();
-    activeFilter = null;
-    applyFilter();
+    // Only clear data if we've switched to a different repo
+    const switchedRepo = !repoInfo || repoInfo.owner !== newRepoInfo.owner || repoInfo.repo !== newRepoInfo.repo;
+    if (switchedRepo) {
+      rowPromises = new WeakMap();
+      allReviewers.clear();
+      activeFilter = null;
+      applyFilter();
+      repoInfo = newRepoInfo;
+    }
 
     const bar = ensureFilterBar();
     if (bar) {
-      bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews for:</span><span class="reviewer-filter-loading">Loading...</span>';
-      bar.style.display = 'flex';
+      if (switchedRepo) {
+        bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews by:</span><span class="reviewer-filter-loading">Loading...</span>';
+        bar.style.display = 'flex';
+      } else if (allReviewers.size > 0) {
+        renderFilterBar();
+      }
     }
 
     if (!observer) {
@@ -461,9 +472,17 @@
     const newUrl = window.location.href;
     if (newUrl !== currentUrl) {
       currentUrl = newUrl;
-      setTimeout(() => {
+      
+      // Clear any pending initialization
+      if (initializationTimeout) {
+        clearTimeout(initializationTimeout);
+      }
+      
+      // Debounce initialization to prevent rapid flashing
+      initializationTimeout = setTimeout(() => {
         initializeExtension();
-      }, 500);
+        initializationTimeout = null;
+      }, 300);
     }
   }
 
