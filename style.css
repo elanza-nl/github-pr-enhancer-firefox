@@ -58,14 +58,11 @@
   border: 1px solid var(--borderColor-default, #d0d7de);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
-  vertical-align: middle;
   display: block;
 }
 
 .reviewer-avatar:hover {
   transform: scale(1.15);
-  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
-  border-color: var(--bgColor-accent-emphasis, #0969da);
 }
 
 /* Review state rings */
