@@ -205,3 +205,27 @@
   cursor: default;
   vertical-align: middle;
 }
+
+/* Custom tooltip system */
+.github-show-reviewer-tooltip {
+  position: absolute;
+  z-index: 1000000;
+  background: var(--bgColor-emphasis, var(--color-neutral-emphasis-plus));
+  color: var(--color-tooltip-fg, #f0f6fc);
+  border: 1px solid var(--color-tooltip-border, #30363d);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12px;
+  line-height: 16px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  white-space: nowrap;
+  max-width: 250px;
+  word-wrap: break-word;
+  white-space: normal;
+}
+
+.github-show-reviewer-tooltip.visible {
+  opacity: 1;
+}

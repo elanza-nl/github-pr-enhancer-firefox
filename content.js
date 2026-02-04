@@ -119,7 +119,7 @@
         const teamIcon = `<svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16" class="octicon octicon-people">
           <path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"></path>
         </svg>`;
-        return `<a href="${searchUrl}" class="reviewer-team-badge" title="@${reviewer.login}" data-login="${reviewer.login}" data-is-team="true">
+        return `<a href="${searchUrl}" class="reviewer-team-badge tooltipped tooltipped-s" aria-label="@${reviewer.login}" data-login="${reviewer.login}" data-is-team="true">
           ${teamIcon} <span class="team-name">@${reviewer.login}</span>
         </a>`;
       } else {
@@ -133,7 +133,7 @@
         const stateLabel = reviewer.state === 'APPROVED' ? ' (approved)'
           : reviewer.state === 'CHANGES_REQUESTED' ? ' (changes requested)'
           : '';
-        return `<a href="${searchUrl}" class="reviewer-avatar-link${stateClass}" data-login="${reviewer.login}" data-type="${reviewer.type}" title="${reviewer.login}${stateLabel}">
+        return `<a href="${searchUrl}" class="reviewer-avatar-link${stateClass} tooltipped tooltipped-s" aria-label="${reviewer.login}${stateLabel}" data-login="${reviewer.login}" data-type="${reviewer.type}">
           <img src="${avatarUrl}" alt="${reviewer.login}" class="reviewer-avatar" loading="lazy" />
         </a>`;
       }
@@ -377,9 +377,9 @@
       a.login.localeCompare(b.login, undefined, { sensitivity: 'base' })
     );
 
-    bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews by:</span>';
-
+    let htmlContent = '<span class="reviewer-filter-label">Pending reviews by:</span>';
     let hasVisibleReviewers = false;
+
     for (const reviewer of sorted) {
       // Only show reviewers that have pending reviews
       if (!hasPendingReviews(reviewer)) {
@@ -388,27 +388,22 @@
       
       hasVisibleReviewers = true;
       const isActive = activeFilter && activeFilter.login === reviewer.login && activeFilter.isTeam === reviewer.isTeam;
+      
       if (reviewer.isTeam) {
-        const btn = document.createElement('button');
-        btn.className = 'reviewer-filter-team' + (isActive ? ' reviewer-filter-team--active' : '');
-        btn.title = `@${reviewer.login}`;
-        btn.innerHTML = '<svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16" class="octicon octicon-people"><path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"></path></svg>';
-        btn.addEventListener('click', () => toggleFilter(reviewer.login, true));
-        bar.appendChild(btn);
+        htmlContent += `<button class="reviewer-filter-team tooltipped tooltipped-s${isActive ? ' reviewer-filter-team--active' : ''}" aria-label="@${reviewer.login}" onclick="window.githubShowReviewerToggleFilter('${reviewer.login}', true)">
+          <svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16" class="octicon octicon-people">
+            <path d="M2 5.5a3.5 3.5 0 1 1 5.898 2.549 5.508 5.508 0 0 1 3.034 4.084.75.75 0 1 1-1.482.235 4 4 0 0 0-7.9 0 .75.75 0 0 1-1.482-.236A5.507 5.507 0 0 1 3.102 8.05 3.493 3.493 0 0 1 2 5.5ZM11 4a3.001 3.001 0 0 1 2.22 5.018 5.01 5.01 0 0 1 2.56 3.012.749.749 0 0 1-.885.954.752.752 0 0 1-.549-.514 3.507 3.507 0 0 0-2.522-2.372.75.75 0 0 1-.574-.73v-.352a.75.75 0 0 1 .416-.672A1.5 1.5 0 0 0 11 5.5.75.75 0 0 1 11 4Zm-5.5-.5a2 2 0 1 0-.001 3.999A2 2 0 0 0 5.5 3.5Z"></path>
+          </svg>
+        </button>`;
       } else {
-        const btn = document.createElement('button');
-        btn.className = 'reviewer-filter-avatar' + (isActive ? ' reviewer-filter-avatar--active' : '');
-        btn.title = reviewer.login;
-        const img = document.createElement('img');
-        img.src = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
-        img.alt = reviewer.login;
-        img.loading = 'lazy';
-        btn.appendChild(img);
-        btn.addEventListener('click', () => toggleFilter(reviewer.login, false));
-        bar.appendChild(btn);
+        const avatarUrl = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
+        htmlContent += `<button class="reviewer-filter-avatar tooltipped tooltipped-s${isActive ? ' reviewer-filter-avatar--active' : ''}" aria-label="${reviewer.login}" onclick="window.githubShowReviewerToggleFilter('${reviewer.login}', false)">
+          <img src="${avatarUrl}" alt="${reviewer.login}" loading="lazy">
+        </button>`;
       }
     }
 
+    bar.innerHTML = htmlContent;
     bar.style.display = hasVisibleReviewers ? 'flex' : 'none';
   }
 
@@ -515,4 +510,76 @@
   });
 
   initializeExtension();
+
+  // Expose toggleFilter globally for onclick handlers
+  window.githubShowReviewerToggleFilter = toggleFilter;
+  
+  // Custom tooltip system
+  let tooltip = null;
+  
+  function createTooltip() {
+    if (tooltip) return tooltip;
+    tooltip = document.createElement('div');
+    tooltip.className = 'github-show-reviewer-tooltip';
+    document.body.appendChild(tooltip);
+    return tooltip;
+  }
+  
+  function showTooltip(element, text) {
+    const tooltip = createTooltip();
+    tooltip.textContent = text;
+    tooltip.classList.add('visible');
+    
+    const rect = element.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    
+    // Position tooltip above the element
+    let top = rect.top - tooltipRect.height - 8;
+    let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+    
+    // Keep tooltip within viewport
+    if (top < 0) {
+      top = rect.bottom + 8;
+    }
+    if (left < 0) {
+      left = 8;
+    }
+    if (left + tooltipRect.width > window.innerWidth) {
+      left = window.innerWidth - tooltipRect.width - 8;
+    }
+    
+    tooltip.style.top = `${top + window.scrollY}px`;
+    tooltip.style.left = `${left + window.scrollX}px`;
+  }
+  
+  function hideTooltip() {
+    if (tooltip) {
+      tooltip.classList.remove('visible');
+    }
+  }
+  
+  // Add tooltip event listeners to filter bar
+  function setupTooltips() {
+    const bar = ensureFilterBar();
+    if (!bar) return;
+    
+    const elements = bar.querySelectorAll('[aria-label]');
+    elements.forEach(element => {
+      element.addEventListener('mouseenter', (e) => {
+        const text = e.target.getAttribute('aria-label');
+        if (text) {
+          showTooltip(e.target, text);
+        }
+      });
+      
+      element.addEventListener('mouseleave', hideTooltip);
+    });
+  }
+  
+  // Call setupTooltips after renderFilterBar
+  const originalRenderFilterBar = renderFilterBar;
+  renderFilterBar = function() {
+    originalRenderFilterBar.call(this);
+    setTimeout(setupTooltips, 100);
+  };
 })();
