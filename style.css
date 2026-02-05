@@ -41,8 +41,8 @@
 }
 
 .reviewer-avatar {
-  width: 20px;
-  height: 20px;
+  width: 23px;
+  height: 23px;
   border-radius: 50%;
   border: 1px solid var(--borderColor-default, #d0d7de);
   cursor: pointer;
@@ -56,13 +56,13 @@
 
 /* Review state rings */
 .reviewer-state-approved .reviewer-avatar {
-  outline: 2px solid #2ea043;
-  outline-offset: -2px;
+  outline: 3px solid var(--fgColor-success, #3fb950);
+  outline-offset: -1px;
 }
 
 .reviewer-state-changes-requested .reviewer-avatar {
-  outline: 2px solid #d29922;
-  outline-offset: -2px;
+  outline: 3px dashed var(--fgColor-attention, #d29922);
+  outline-offset: -1px;
 }
 
 /* Team badge styles */
@@ -120,7 +120,7 @@
 
 .reviewer-filter-avatar {
   background: none;
-  border: 2px solid var(--borderColor-default, #d0d7de);
+  border: 2px solid transparent;
   border-radius: 50%;
   padding: 0;
   width: 28px;
@@ -138,21 +138,19 @@
 
 .reviewer-filter-avatar:hover {
   transform: scale(1.1);
-  border-color: var(--borderColor-emphasis, #858d96);
 }
 
 .reviewer-filter-avatar--active {
-  border-color: var(--bgColor-accent-emphasis, #0969da);
-  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
+  box-shadow: 0 0 0 2px var(--fgColor-done, #ab7df8);
 }
 
 .reviewer-filter-avatar--active:hover {
-  box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
+  box-shadow: 0 0 0 2px var(--fgColor-done, #ab7df8);
 }
 
 .reviewer-filter-team {
   background: var(--bgColor-muted, #f6f8fa);
-  border: 2px solid var(--borderColor-default, #d0d7de);
+  border: 2px solid transparent;
   border-radius: 50%;
   width: 28px;
   height: 28px;
@@ -166,11 +164,9 @@
 
 .reviewer-filter-team:hover {
   transform: scale(1.1);
-  border-color: var(--borderColor-emphasis, #858d96);
 }
 
 .reviewer-filter-team--active {
-  border-color: var(--bgColor-accent-emphasis, #0969da);
   box-shadow: 0 0 0 2px var(--bgColor-accent-emphasis, #0969da);
 }
 
