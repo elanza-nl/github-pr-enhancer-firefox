@@ -398,6 +398,7 @@
 
     bar.innerHTML = htmlContent;
     bar.style.display = hasVisibleReviewers ? 'flex' : 'none';
+    setTimeout(setupTooltips, 100);
   }
 
   function toggleFilter(login, isTeam) {
@@ -576,11 +577,4 @@
       });
     });
   }
-  
-  // Call setupTooltips after renderFilterBar
-  const originalRenderFilterBar = renderFilterBar;
-  renderFilterBar = function() {
-    originalRenderFilterBar.call(this);
-    setTimeout(setupTooltips, 100);
-  };
 })();
