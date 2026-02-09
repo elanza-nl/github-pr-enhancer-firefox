@@ -1,41 +1,39 @@
 # GitHub PR Enchancer
 
-A Chrome extension that displays reviewers directly in the GitHub Pull Request list view.
-
-[Chrome Web Store / github-show-reviewer](https://chromewebstore.google.com/detail/github-show-reviewer/oiooodcehfplbgnamghfcnklebcdohhd?authuser=0&hl=en)
-
-![Reviwer List](docs/show_reviewer_list.png)
+A Firefox extension that displays reviewers directly in the GitHub Pull Request list view.
 
 ## Features
 
-- Display reviewer names
-  - Supports team reviewers
-  - Shows users who have already reviewed
-  - Displays "None" when no reviewers are assigned
+- Display reviewer avatars and review status
 - Click on a reviewer/team reviewer to filter PRs by that assignee
 
 ![Show Reviewer](docs/github_show_reviewer.gif)
 
 ## Installation
 
-**Chrome Web Store:**  
-[Chrome Web Store / github-show-reviewer](https://chromewebstore.google.com/detail/github-show-reviewer/oiooodcehfplbgnamghfcnklebcdohhd?authuser=0&hl=en)
-
-**For Developers:**
+**For Developers (Temporary Installation):**
 
 1. Clone this repository
-2. Open Chrome and navigate to `chrome://extensions`
-3. Enable "Developer mode" in the top right corner
-4. Click "Load unpacked" and select the extension directory
+2. Open Firefox and navigate to `about:debugging#/runtime/this-firefox`
+3. Click "Load Temporary Add-on"
+4. Select the `manifest.json` file from the extension directory
+
+**Note:** Temporary add-ons are removed when Firefox restarts. For permanent installation, use Firefox Developer Edition/Nightly or wait for the official AMO release.
+
+**For Permanent Self-Hosting:**
+
+1. Package the extension: `zip -r github-pr-enhancer.xpi *` (from extension directory)
+2. Submit to [addons.mozilla.org](https://addons.mozilla.org/developers/) as "unlisted" for Mozilla signing
+3. Download the signed `.xpi` and install via `about:addons` → Install Add-on From File
 
 ## Configuration
 
 For private repositories or to increase API rate limits, you need to configure your GitHub Personal Access Token.
 
-1. Open Chrome and navigate to `chrome://extensions`
-2. Find "GitHub Show Reviewer" and click "Details"
-3. Click "Extension options"
-4. The GitHub Show Reviewer Settings page will open as shown below
+1. Open Firefox and navigate to `about:addons`
+2. Find "GitHub PR Enhancer" and click on it
+3. Click the "Options" or "Preferences" tab
+4. The GitHub PR Enhancer Settings page will open as shown below
 
 ![Settings Page](docs/github_access_token_setting.png)
 
