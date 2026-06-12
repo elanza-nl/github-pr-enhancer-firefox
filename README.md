@@ -39,9 +39,9 @@ Download the latest .xpi from releases.
 For private repositories or to increase API rate limits, you need to configure your GitHub Personal Access Token.
 
 1. Open Firefox and navigate to `about:addons`
-2. Find "GitHub PR Enhancer" and click on it
-3. Click the "Options" or "Preferences" tab
-4. The GitHub PR Enhancer Settings page will open as shown below
+2. Find "GitHub PR Enhancer" and click the `⋯` (kebab) menu next to it
+3. Click "Preferences"
+4. The GitHub PR Enhancer Settings page will open in a new tab as shown below
 ![Settings Page](docs/options.png)
 5. Click "Create a token here" link
 6. GitHub's fine-grained token creation page will open
