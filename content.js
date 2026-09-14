@@ -1,6 +1,6 @@
 (() => {
-  if (window.location.hostname !== "github.com") {
-    return;
+  if (window.location.hostname !== 'github.com') {
+    return; 
   }
 
   // Check if current page is a PR list page and extract repo info
@@ -15,8 +15,8 @@
 
   let repoInfo = checkAndGetRepoInfo();
   let rowPromises = new WeakMap();
-  const ROW_SELECTOR = ".js-issue-row";
-  const SPAN_CLASS = "github-show-reviewer";
+  const ROW_SELECTOR = '.js-issue-row, [class*="PullsListItem-module__listItem"]';
+  const SPAN_CLASS = 'github-show-reviewer';
   let currentUrl = window.location.href;
   let observer = null;
   let rowReviewerData = new WeakMap();
@@ -31,20 +31,17 @@
   // Get GitHub API headers (includes token if available)
   async function getApiHeaders() {
     const headers = {
-      Accept: "application/vnd.github+json",
-      "X-GitHub-Api-Version": "2022-11-28",
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
     };
 
     try {
-      const result = await browser.storage.sync.get(["githubToken"]);
+      const result = await browser.storage.sync.get(['githubToken']);
       if (result.githubToken) {
         headers.Authorization = `Bearer ${result.githubToken}`;
       }
     } catch (error) {
-      console.error(
-        "[GitHub PR Enhancer] Failed to get token from storage:",
-        error,
-      );
+      console.error('[GitHub PR Enhancer] Failed to get token from storage:', error);
     }
 
     return headers;
@@ -52,19 +49,15 @@
 
   // Create and return span element for displaying reviewer info in PR row
   function ensureInfoSpan(row) {
-    const metaContainer = row.querySelector(
-      ".d-flex.mt-1.text-small.color-fg-muted",
-    );
+    const metaContainer = row.querySelector('.d-flex.mt-1.text-small.color-fg-muted, [class*="Description-module__container"]');
     if (!metaContainer) {
       return null;
     }
 
-    let inlineFlexContainer = metaContainer.querySelector(
-      ".d-none.d-md-inline-flex",
-    );
+    let inlineFlexContainer = metaContainer.querySelector('.d-none.d-md-inline-flex');
     if (!inlineFlexContainer) {
-      inlineFlexContainer = document.createElement("span");
-      inlineFlexContainer.className = "d-none d-md-inline-flex";
+      inlineFlexContainer = document.createElement('span');
+      inlineFlexContainer.className = 'd-none d-md-inline-flex';
       metaContainer.appendChild(inlineFlexContainer);
     }
 
@@ -101,9 +94,9 @@
     }
 
     // Fallback: extract from PR link
-    const link = row.querySelector('a.Link--primary[href*="/pull/"]');
+    const link = row.querySelector('a.Link--primary[href*="/pull/"], a[data-testid="listitem-title-link"]');
     if (link) {
-      const match = link.getAttribute("href").match(/\/pull\/(\d+)/);
+      const match = link.getAttribute('href').match(/\/pull\/(\d+)/);
       if (match) {
         return match[1];
       }
@@ -128,36 +121,25 @@
         </span>`;
       } else {
         // User avatar
-        const avatarUrl =
-          reviewer.avatarUrl ||
-          `https://github.com/${reviewer.login}.png?size=40`;
-        const stateClass =
-          reviewer.state === "APPROVED"
-            ? " reviewer-state-approved"
-            : reviewer.state === "CHANGES_REQUESTED"
-              ? " reviewer-state-changes-requested"
-              : "";
-        const stateLabel =
-          reviewer.state === "APPROVED"
-            ? " (approved)"
-            : reviewer.state === "CHANGES_REQUESTED"
-              ? " (changes requested)"
-              : "";
+        const avatarUrl = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
+        const stateClass = reviewer.state === 'APPROVED' ? ' reviewer-state-approved'
+          : reviewer.state === 'CHANGES_REQUESTED' ? ' reviewer-state-changes-requested'
+          : '';
+        const stateLabel = reviewer.state === 'APPROVED' ? ' (approved)'
+          : reviewer.state === 'CHANGES_REQUESTED' ? ' (changes requested)'
+          : '';
         return `<span class="reviewer-avatar-link${stateClass} tooltipped tooltipped-s" aria-label="${reviewer.login}${stateLabel}" data-login="${reviewer.login}" data-type="${reviewer.type}">
           <img src="${avatarUrl}" alt="${reviewer.login}" class="reviewer-avatar" loading="lazy" />
         </span>`;
       }
     });
 
-    let overflowBadge = "";
+    let overflowBadge = '';
     if (overflowCount > 0) {
-      overflowBadge = `<span class="reviewer-overflow-badge" title="${reviewers
-        .slice(MAX_VISIBLE)
-        .map((r) => (r.isTeam ? "@" + r.login : r.login))
-        .join(", ")}">+${overflowCount}</span>`;
+      overflowBadge = `<span class="reviewer-overflow-badge" title="${reviewers.slice(MAX_VISIBLE).map(r => r.isTeam ? '@' + r.login : r.login).join(', ')}">+${overflowCount}</span>`;
     }
 
-    return `<span class="reviewer-separator">•</span><span class="reviewer-avatars-container">${avatarElements.join("")}${overflowBadge}</span>`;
+    return `<span class="reviewer-separator">•</span><span class="reviewer-avatars-container">${avatarElements.join('')}${overflowBadge}</span>`;
   }
 
   // Update span element content with optional eye icon and error styling
@@ -171,11 +153,7 @@
   function isBot(login) {
     if (!login) return false;
     const lowerLogin = login.toLowerCase();
-    return (
-      lowerLogin.includes("bot") ||
-      lowerLogin === "renovate" ||
-      lowerLogin === "github-actions"
-    );
+    return lowerLogin.includes('bot') || lowerLogin === 'renovate' || lowerLogin === 'github-actions';
   }
 
   // Fetch deployments for a specific SHA
@@ -305,9 +283,7 @@
       if (!pullResponse.ok) {
         const errorText = await pullResponse.text();
         console.error(`[GitHub PR Enhancer] API Error:`, errorText);
-        throw new Error(
-          `GitHub API error ${pullResponse.status}: ${errorText.substring(0, 100)}`,
-        );
+        throw new Error(`GitHub API error ${pullResponse.status}: ${errorText.substring(0, 100)}`);
       }
 
       const pullData = await pullResponse.json();
@@ -323,8 +299,8 @@
             .map((user) => ({
               login: user.login,
               avatarUrl: user.avatar_url,
-              type: "requested",
-              isTeam: false,
+              type: 'requested',
+              isTeam: false
             }))
         : [];
 
@@ -332,8 +308,8 @@
       const requestedTeams = Array.isArray(pullData.requested_teams)
         ? pullData.requested_teams.map((team) => ({
             login: team.slug,
-            type: "requested",
-            isTeam: true,
+            type: 'requested',
+            isTeam: true
           }))
         : [];
 
@@ -353,7 +329,7 @@
             review.user &&
             review.user.login &&
             review.state &&
-            review.state.toUpperCase() !== "PENDING" &&
+            review.state.toUpperCase() !== 'PENDING' &&
             review.user.login !== pullData.user.login &&
             !isBot(review.user.login)
           ) {
@@ -364,9 +340,9 @@
       const reviewedUsers = Array.from(reviewMap.values()).map((review) => ({
         login: review.user.login,
         avatarUrl: review.user.avatar_url,
-        type: "reviewed",
+        type: 'reviewed',
         state: review.state.toUpperCase(),
-        isTeam: false,
+        isTeam: false
       }));
 
       // Deduplicate by login
@@ -385,7 +361,7 @@
 
       return { reviewers, deployments };
     } catch (error) {
-      return { error: error.message || "Unknown error" };
+      return { error: error.message || 'Unknown error' };
     }
   }
 
@@ -405,12 +381,8 @@
       return;
     }
 
-    setSpanText(
-      infoSpan,
-      '<span class="reviewer-separator">•</span><span>Reviewer: </span> Loading...',
-      false,
-    );
-    infoSpan.removeAttribute("title");
+    setSpanText(infoSpan, '<span class="reviewer-separator">•</span><span>Reviewer: </span> Loading...', false);
+    infoSpan.removeAttribute('title');
 
     const promise = fetchReviewers(prNumber);
     rowPromises.set(row, promise);
@@ -421,11 +393,7 @@
       }
 
       if (error) {
-        setSpanText(
-          infoSpan,
-          '<span class="reviewer-separator">•</span><span>Reviewer: </span> <span class="reviewer-na">N/A</span>',
-          true,
-        );
+        setSpanText(infoSpan, '<span class="reviewer-separator">•</span><span>Reviewer: </span> <span class="reviewer-na">N/A</span>', true);
         infoSpan.title = error;
         return;
       }
@@ -461,25 +429,19 @@
 
   function filterRow(row) {
     if (!activeFilter) {
-      row.style.display = "";
+      row.style.display = '';
       return;
     }
     const reviewers = rowReviewerData.get(row);
     if (!reviewers) {
-      row.style.display = "none";
+      row.style.display = 'none';
       return;
     }
-    const match = reviewers.find(
-      (r) => r.login === activeFilter.login && r.isTeam === activeFilter.isTeam,
-    );
-    if (
-      !match ||
-      match.state === "APPROVED" ||
-      match.state === "CHANGES_REQUESTED"
-    ) {
-      row.style.display = "none";
+    const match = reviewers.find(r => r.login === activeFilter.login && r.isTeam === activeFilter.isTeam);
+    if (!match || match.state === 'APPROVED' || match.state === 'CHANGES_REQUESTED') {
+      row.style.display = 'none';
     } else {
-      row.style.display = "";
+      row.style.display = '';
     }
   }
 
@@ -489,16 +451,17 @@
 
   function ensureFilterBar() {
     if (filterBar && document.contains(filterBar)) return filterBar;
-    document
-      .querySelectorAll(".github-show-reviewer-filter")
-      .forEach((el) => el.remove());
+    document.querySelectorAll('.github-show-reviewer-filter').forEach(el => el.remove());
     filterBar = null;
     const firstRow = document.querySelector(ROW_SELECTOR);
     if (!firstRow) return null;
-    filterBar = document.createElement("div");
-    filterBar.className = "github-show-reviewer-filter pl-3";
-    filterBar.style.display = "none";
-    firstRow.parentNode.insertBefore(filterBar, firstRow);
+    filterBar = document.createElement('div');
+    filterBar.className = 'github-show-reviewer-filter';
+    filterBar.style.display = 'none';
+    // On the new list view rows live in a React-managed <ul>; insert the bar
+    // before the list itself so React never reconciles it away.
+    const listRoot = firstRow.closest('ul[data-listview-component="items-list"]') || firstRow;
+    listRoot.parentNode.insertBefore(filterBar, listRoot);
 
     filterBar.addEventListener('click', (e) => {
       const el = e.target.closest('[aria-label]');
@@ -525,25 +488,20 @@
     return filterBar;
   }
 
-  function hasPendingReviews(reviewer) {
-    // Check all rows to see if this reviewer has any pending reviews
+  function countPendingReviews(reviewer) {
+    // Count all rows where this reviewer still has a pending review
     const rows = document.querySelectorAll(ROW_SELECTOR);
+    let count = 0;
     for (const row of rows) {
       const reviewers = rowReviewerData.get(row);
       if (!reviewers) continue;
 
-      const match = reviewers.find(
-        (r) => r.login === reviewer.login && r.isTeam === reviewer.isTeam,
-      );
-      if (
-        match &&
-        match.state !== "APPROVED" &&
-        match.state !== "CHANGES_REQUESTED"
-      ) {
-        return true;
+      const match = reviewers.find(r => r.login === reviewer.login && r.isTeam === reviewer.isTeam);
+      if (match && match.state !== 'APPROVED' && match.state !== 'CHANGES_REQUESTED') {
+        count++;
       }
     }
-    return false;
+    return count;
   }
 
   function renderFilterBar() {
@@ -551,35 +509,31 @@
     if (!bar) return;
 
     const sorted = Array.from(allReviewers.values()).sort((a, b) =>
-      a.login.localeCompare(b.login, undefined, { sensitivity: "base" }),
+      a.login.localeCompare(b.login, undefined, { sensitivity: 'base' })
     );
 
-    let htmlContent =
-      '<span class="reviewer-filter-label">Pending reviews by:</span>';
+    let htmlContent = '<span class="reviewer-filter-label">Pending reviews by:</span>';
     let hasVisibleReviewers = false;
 
     for (const reviewer of sorted) {
       // Only show reviewers that have pending reviews
-      if (!hasPendingReviews(reviewer)) {
+      const pendingCount = countPendingReviews(reviewer);
+      if (pendingCount === 0) {
         continue;
       }
 
       hasVisibleReviewers = true;
-      const isActive =
-        activeFilter &&
-        activeFilter.login === reviewer.login &&
-        activeFilter.isTeam === reviewer.isTeam;
+      const isActive = activeFilter && activeFilter.login === reviewer.login && activeFilter.isTeam === reviewer.isTeam;
+      const countBadge = `<span class="reviewer-filter-count">${pendingCount > 99 ? '99+' : pendingCount}</span>`;
 
       if (reviewer.isTeam) {
-        htmlContent += `<button class="reviewer-filter-team tooltipped tooltipped-s${isActive ? " reviewer-filter-team--active" : ""}" aria-label="@${reviewer.login}">
-          ${TEAM_ICON}
+        htmlContent += `<button class="reviewer-filter-team${isActive ? ' reviewer-filter-team--active' : ''}" aria-label="@${reviewer.login}">
+          ${TEAM_ICON}${countBadge}
         </button>`;
       } else {
-        const avatarUrl =
-          reviewer.avatarUrl ||
-          `https://github.com/${reviewer.login}.png?size=40`;
-        htmlContent += `<button class="reviewer-filter-avatar tooltipped tooltipped-s${isActive ? " reviewer-filter-avatar--active" : ""}" aria-label="${reviewer.login}">
-          <img src="${avatarUrl}" alt="${reviewer.login}" loading="lazy">
+        const avatarUrl = reviewer.avatarUrl || `https://github.com/${reviewer.login}.png?size=40`;
+        htmlContent += `<button class="reviewer-filter-avatar${isActive ? ' reviewer-filter-avatar--active' : ''}" aria-label="${reviewer.login}">
+          <img src="${avatarUrl}" alt="${reviewer.login}" loading="lazy">${countBadge}
         </button>`;
       }
     }
@@ -589,11 +543,7 @@
   }
 
   function toggleFilter(login, isTeam) {
-    if (
-      activeFilter &&
-      activeFilter.login === login &&
-      activeFilter.isTeam === isTeam
-    ) {
+    if (activeFilter && activeFilter.login === login && activeFilter.isTeam === isTeam) {
       clearFilter();
     } else {
       activeFilter = { login, isTeam };
@@ -619,19 +569,13 @@
       }
       allReviewers.clear();
       activeFilter = null;
-      if (filterBar) {
-        filterBar.remove();
-        filterBar = null;
-      }
+      if (filterBar) { filterBar.remove(); filterBar = null; }
       repoInfo = null;
       return;
     }
 
     // Only clear data if we've switched to a different repo
-    const switchedRepo =
-      !repoInfo ||
-      repoInfo.owner !== newRepoInfo.owner ||
-      repoInfo.repo !== newRepoInfo.repo;
+    const switchedRepo = !repoInfo || repoInfo.owner !== newRepoInfo.owner || repoInfo.repo !== newRepoInfo.repo;
     if (switchedRepo) {
       rowPromises = new WeakMap();
       allReviewers.clear();
@@ -643,9 +587,8 @@
     const bar = ensureFilterBar();
     if (bar) {
       if (switchedRepo) {
-        bar.innerHTML =
-          '<span class="reviewer-filter-label">Pending reviews by:</span><span class="reviewer-filter-loading">Loading...</span>';
-        bar.style.display = "flex";
+        bar.innerHTML = '<span class="reviewer-filter-label">Pending reviews by:</span><span class="reviewer-filter-loading">Loading...</span>';
+        bar.style.display = 'flex';
       } else if (allReviewers.size > 0) {
         renderFilterBar();
       }
@@ -681,12 +624,12 @@
     const newUrl = window.location.href;
     if (newUrl !== currentUrl) {
       currentUrl = newUrl;
-
+      
       // Clear any pending initialization
       if (initializationTimeout) {
         clearTimeout(initializationTimeout);
       }
-
+      
       // Debounce initialization to prevent rapid flashing
       initializationTimeout = setTimeout(() => {
         initializeExtension();
@@ -697,27 +640,27 @@
 
   setInterval(checkUrlChange, 1000);
 
-  window.addEventListener("popstate", () => {
+  window.addEventListener('popstate', () => {
     checkUrlChange();
   });
 
   initializeExtension();
-
+  
   // Custom tooltip system
   let tooltip = null;
-
+  
   function createTooltip() {
     if (tooltip) return tooltip;
-    tooltip = document.createElement("div");
-    tooltip.className = "github-show-reviewer-tooltip";
+    tooltip = document.createElement('div');
+    tooltip.className = 'github-show-reviewer-tooltip';
     document.body.appendChild(tooltip);
     return tooltip;
   }
-
+  
   function showTooltip(element, text) {
     const tooltip = createTooltip();
     tooltip.textContent = text;
-    tooltip.classList.add("visible");
+    tooltip.classList.add('visible');
 
     const rect = element.getBoundingClientRect();
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -740,10 +683,10 @@
     tooltip.style.top = `${top + window.scrollY}px`;
     tooltip.style.left = `${left + window.scrollX}px`;
   }
-
+  
   function hideTooltip() {
     if (tooltip) {
-      tooltip.classList.remove("visible");
+      tooltip.classList.remove('visible');
     }
   }
   
