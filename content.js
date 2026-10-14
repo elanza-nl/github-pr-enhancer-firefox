@@ -1,6 +1,6 @@
 (() => {
   if (window.location.hostname !== 'github.com') {
-    return; 
+    return;
   }
 
   // Check if current page is a PR list page and extract repo info
@@ -15,11 +15,14 @@
 
   let repoInfo = checkAndGetRepoInfo();
   let rowPromises = new WeakMap();
-  const ROW_SELECTOR = '.js-issue-row, [class*="PullsListItem-module__listItem"]';
+  // New list view uses hashed class names that change between deploys, so
+  // anchor on GitHub's data-* attributes instead.
+  const ROW_SELECTOR = '.js-issue-row, ul[data-listview-component="items-list"] > li';
   const SPAN_CLASS = 'github-show-reviewer';
   let currentUrl = window.location.href;
   let observer = null;
   let rowReviewerData = new WeakMap();
+  let rowHtml = new WeakMap();
   let allReviewers = new Map();
   let activeFilter = null;
   let filterBar = null;
@@ -49,7 +52,8 @@
 
   // Create and return span element for displaying reviewer info in PR row
   function ensureInfoSpan(row) {
-    const metaContainer = row.querySelector('.d-flex.mt-1.text-small.color-fg-muted, [class*="Description-module__container"]');
+    const metaContainer = row.querySelector('.d-flex.mt-1.text-small.color-fg-muted')
+      || row.querySelector('[data-testid="timestamp-container"]')?.parentElement;
     if (!metaContainer) {
       return null;
     }
@@ -116,7 +120,7 @@
 
     const avatarElements = visibleReviewers.map((reviewer) => {
       if (reviewer.isTeam) {
-        return `<span class="reviewer-team-badge tooltipped tooltipped-s" aria-label="@${reviewer.login}" data-login="${reviewer.login}" data-is-team="true">
+        return `<span class="reviewer-team-badge" aria-label="@${reviewer.login}" data-login="${reviewer.login}" data-is-team="true">
           ${TEAM_ICON} <span class="team-name">@${reviewer.login}</span>
         </span>`;
       } else {
@@ -128,7 +132,7 @@
         const stateLabel = reviewer.state === 'APPROVED' ? ' (approved)'
           : reviewer.state === 'CHANGES_REQUESTED' ? ' (changes requested)'
           : '';
-        return `<span class="reviewer-avatar-link${stateClass} tooltipped tooltipped-s" aria-label="${reviewer.login}${stateLabel}" data-login="${reviewer.login}" data-type="${reviewer.type}">
+        return `<span class="reviewer-avatar-link${stateClass}" aria-label="${reviewer.login}${stateLabel}" data-login="${reviewer.login}" data-type="${reviewer.type}">
           <img src="${avatarUrl}" alt="${reviewer.login}" class="reviewer-avatar" loading="lazy" />
         </span>`;
       }
@@ -259,7 +263,7 @@
         tooltip = `${deployment.environment}: ${deployment.state} (${formatRelativeTime(deployment.deployedAt)})`;
       }
 
-      return `<span class="deployment-badge ${stateClass} tooltipped tooltipped-s" aria-label="${tooltip}">${abbrevName}</span>`;
+      return `<span class="deployment-badge ${stateClass}" aria-label="${tooltip}">${abbrevName}</span>`;
     });
 
     return `<span class="reviewer-separator">•</span><span class="deployment-badges-container">${badges.join('')}</span>`;
@@ -398,8 +402,9 @@
         return;
       }
 
-      const deploymentBadgesHtml = formatDeploymentBadges(deployments);
-      setSpanText(infoSpan, deploymentBadgesHtml + formatReviewerAvatars(reviewers), false);
+      const html = formatDeploymentBadges(deployments) + formatReviewerAvatars(reviewers);
+      setSpanText(infoSpan, html, false);
+      rowHtml.set(row, html);
       infoSpan.removeAttribute('title');
       rowReviewerData.set(row, reviewers);
       let barChanged = false;
@@ -416,6 +421,21 @@
     promise.finally(() => {
       if (rowPromises.get(row) === promise) {
         rowPromises.delete(row);
+      }
+    });
+  }
+
+  // React may re-render a row's metadata (e.g. when deferred review/status
+  // skeletons resolve) and drop our span; put it back from cached HTML.
+  function restoreMissingSpans() {
+    document.querySelectorAll(ROW_SELECTOR).forEach((row) => {
+      const html = rowHtml.get(row);
+      if (!html || row.querySelector(`.${SPAN_CLASS}`)) {
+        return;
+      }
+      const infoSpan = ensureInfoSpan(row);
+      if (infoSpan) {
+        setSpanText(infoSpan, html, false);
       }
     });
   }
@@ -612,6 +632,7 @@
             }
           });
         }
+        restoreMissingSpans();
       });
       observer.observe(document.body, { childList: true, subtree: true });
     }
@@ -689,6 +710,24 @@
       tooltip.classList.remove('visible');
     }
   }
+
+  // Row avatars/badges use the custom tooltip too: GitHub's CSS tooltips render
+  // inside the row and get covered by the next PR in the list.
+  const ROW_TOOLTIP_SELECTOR = `.${SPAN_CLASS} [aria-label]`;
+
+  document.addEventListener('mouseenter', (e) => {
+    const el = e.target;
+    if (el instanceof Element && el.matches(ROW_TOOLTIP_SELECTOR)) {
+      showTooltip(el, el.getAttribute('aria-label'));
+    }
+  }, true);
+
+  document.addEventListener('mouseleave', (e) => {
+    const el = e.target;
+    if (el instanceof Element && el.matches(ROW_TOOLTIP_SELECTOR)) {
+      hideTooltip();
+    }
+  }, true);
   
 
 })();
